@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color and Text Changer</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body.fullscreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Para evitar barras de desplazamiento */
+        }
+
+        body.vertical {
+            display: block;
+            text-align: center;
+        }
+
+        #marquee-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw; /* Usamos viewport width para el ancho */
+            height: 100vh; /* Usamos viewport height para la altura */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #displayText {
+            font-weight: bold;
+            position: absolute; /* Posición absoluta para un control total */
+            white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+            animation: moveText linear infinite;
+        }
+
+        @keyframes moveText {
+            0% { left: 100%; } /* Comienza fuera de la pantalla hacia la derecha */
+            100% { left: -100%; } /* Termina fuera de la pantalla hacia la izquierda */
+        }
+        
+        /* Estilos adicionales para pantallas pequeñas */
+        @media screen and (max-width: 768px) {
+            body.vertical {
+                display: block;
+            }
+            
+            #marquee-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body class="text-center">
+
+<div class="container mt-5" id="formContainer">
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group">
+                <label for="bgColorInput">Selecciona el color de fondo:</label>
+                <input type="color" class="form-control" id="bgColorInput" value="#ff0000">
+            </div>
+
+            <div class="form-group">
+                <label for="textColorInput">Selecciona el color del texto:</label>
+                <input type="color" class="form-control" id="textColorInput">
+            </div>
+
+            <div class="form-group">
+                <label for="textInput">Escribe un texto:</label>
+                <input type="text" class="form-control" id="textInput">
+            </div>
+
+            <div class="form-group">
+                <label for="fontFamilySelect">Tipo de letra:</label>
+                <select class="form-control" id="fontFamilySelect">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fontSizeInput">Tamaño de la fuente (px):</label>
+                <input type="number" class="form-control" id="fontSizeInput" min="10" max="300" value="200">
+            </div>
+
+            <div class="form-group">
+                <label for="speedInput">Velocidad de transmisión <strong><span id="speedValue">10</span> segundos</strong></label>
+                <input type="range" class="form-control" id="speedInput" min="1" max="20" value="10">
+            </div>
+
+            <button id="applyChangesBtn" class="btn btn-primary">Aplicar transmisión de texto</button>
+        </div>
+    </div>
+</div>
+
+<div id="marquee-container" class="d-none">
+    <div id="displayText"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+var transmitting = false;
+
+document.getElementById('speedInput').addEventListener('input', function () {
+    document.getElementById('speedValue').textContent = this.value;
+});
+
+document.getElementById('applyChangesBtn').addEventListener('click', function () {
+    if (!transmitting) {
+        startTransmission();
+    } else {
+        stopTransmission();
+    }
+});
+
+document.addEventListener('dblclick', function () {
+    if (transmitting) {
+        stopTransmission();
+    }
+});
+
+// Verificar la orientación de la pantalla al cargar y redimensionar
+window.addEventListener('load', checkScreenOrientation);
+window.addEventListener('resize', checkScreenOrientation);
+
+function checkScreenOrientation() {
+    if (window.innerHeight > window.innerWidth) {
+        if (transmitting) {
+            stopTransmission();
+        }
+        document.body.classList.add('vertical');
+    } else {
+        document.body.classList.remove('vertical');
+    }
+}
+
+function startTransmission() {
+    var bgColor = document.getElementById('bgColorInput').value;
+    var textColor = document.getElementById('textColorInput').value;
+    var text = document.getElementById('textInput').value;
+    var fontFamily = document.getElementById('fontFamilySelect').value;
+    var fontSize = document.getElementById('fontSizeInput').value;
+    var speed = document.getElementById('speedInput').value;
+
+    document.body.style.backgroundColor = bgColor;
+    document.body.style.color = textColor;
+
+    var displayText = document.getElementById('displayText');
+    displayText.textContent = text;
+    displayText.style.color = textColor;
+    displayText.style.fontFamily = fontFamily;
+    displayText.style.fontSize = fontSize + 'px';
+    displayText.style.animationDuration = speed + 's';
+    displayText.style.animationIterationCount = 'infinite'; // Repetir infinitamente
+
+    document.getElementById('formContainer').classList.add('d-none');
+    document.getElementById('marquee-container').classList.remove('d-none');
+    document.body.classList.add('fullscreen');
+
+    transmitting = true;
+}
+
+function stopTransmission() {
+    document.body.style.backgroundColor = '';
+    document.body.style.color = '';
+    document.getElementById('displayText').textContent = '';
+    document.getElementById('formContainer').classList.remove('d-none');
+    document.getElementById('marquee-container').classList.add('d-none');
+    document.body.classList.remove('fullscreen');
+    document.body.classList.remove('vertical');
+
+    transmitting = false;
+}
+</script>
+
+</body>
+</html>
